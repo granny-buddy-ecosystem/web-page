@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import demoVideo from '../assets/demo.mp4'
 import './PhoneMock.css'
 
 const steps = [
@@ -33,6 +34,18 @@ const steps = [
 ]
 
 export default function PhoneMock() {
+  const [videoOpen, setVideoOpen] = useState(false)
+
+  const openVideo = () => setVideoOpen(true)
+  const closeVideo = useCallback(() => setVideoOpen(false), [])
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!videoOpen) return
+    const onKey = (e) => { if (e.key === 'Escape') closeVideo() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [videoOpen, closeVideo])
   const stepRef = useRef(0)
   const intervalRef = useRef(null)
   const screenRef = useRef(null)
@@ -121,6 +134,16 @@ export default function PhoneMock() {
         </div>
 
         <div className="phone__device-wrapper reveal reveal-delay-2">
+          {/* Demo button above phone */}
+          <button
+            id="demo-video-btn"
+            className="phone__demo-btn"
+            onClick={openVideo}
+            aria-label="Ver demo de la app"
+          >
+            <span className="phone__demo-btn-icon" aria-hidden="true">▶</span>
+            <span>Ver demo</span>
+          </button>
           {/* Phone frame */}
           <div className="phone__device" role="img" aria-label="Demostración de la app Granny Buddy en un teléfono">
             {/* Notch */}
@@ -217,6 +240,37 @@ export default function PhoneMock() {
           </div>
         </div>
       </div>
+
+      {/* Video Modal */}
+      {videoOpen && (
+        <div
+          className="video-modal__backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Demo de Granny Buddy"
+          onClick={closeVideo}
+        >
+          <div
+            className="video-modal__content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="video-modal__close"
+              onClick={closeVideo}
+              aria-label="Cerrar video"
+            >
+              ✕
+            </button>
+            <video
+              className="video-modal__video"
+              src={demoVideo}
+              controls
+              autoPlay
+              playsInline
+            />
+          </div>
+        </div>
+      )}
     </section>
   )
 }
